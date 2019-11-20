@@ -11,13 +11,13 @@
 # 
 # c. (1 punto) Continuando con la imagen anterior. Cuente y etiquete cuantos objetos de la segmentación pueden considerarse 2 células agrupadas, y cuantos y cuales más de 2 células.
 
-# In[6]:
+# In[1]:
 
 
 from functools import partial, reduce
 
 import matplotlib.pyplot as plt
-import matplotlib.image as img
+import matplotlib.image as pim
 
 import numpy as np
 import cv2 
@@ -26,11 +26,19 @@ from mfilt_funcs import *
 from utils import *
 
 
-# In[11]:
+# In[2]:
 
 
 # Read image as gray-scale
 img  = cv2.imread('imagenes/Ex3Preg6(a).tif', cv2.IMREAD_GRAYSCALE)
+
+
+# In[3]:
+
+
+# Read image as gray-scale
+img  = cv2.imread('imagenes/Ex3Preg6(a).tif', cv2.IMREAD_GRAYSCALE)
+col = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
 img2 = img.copy()
 # Blur the image to reduce noise
 img_blur = cv2.medianBlur(img, 5)
@@ -46,10 +54,22 @@ if circles is not None:
         #cv2.circle(img, (i[0], i[1]), 2, (0, 0, 255), 3)
 
 
-# In[12]:
+# In[4]:
 
 
-side_by_side(img, img2)
+col = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+
+
+# In[5]:
+
+
+side_by_side(img, col)
+
+
+# In[10]:
+
+
+col[1,2,:]
 
 
 # In[10]:
