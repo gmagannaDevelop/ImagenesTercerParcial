@@ -11,7 +11,7 @@
 # 
 # c. (1 punto) Continuando con la imagen anterior. Cuente y etiquete cuantos objetos de la segmentación pueden considerarse 2 células agrupadas, y cuantos y cuales más de 2 células.
 
-# In[1]:
+# In[12]:
 
 
 from functools import partial, reduce
@@ -26,24 +26,31 @@ from mfilt_funcs import *
 from utils import *
 
 
-# In[2]:
+# In[20]:
 
 
-# Read image as gray-scale
-img  = cv2.imread('imagenes/Ex3Preg6(a).tif', cv2.IMREAD_GRAYSCALE)
+img   = cv2.imread('imagenes/Ex3Preg6(a).tif', cv2.IMREAD_GRAYSCALE)
+color = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB) # Color copy, to draw colored circles
+img2  = img.copy() # Another copy
 
 
-# In[3]:
+# In[21]:
 
 
-# Read image as gray-scale
-img  = cv2.imread('imagenes/Ex3Preg6(a).tif', cv2.IMREAD_GRAYSCALE)
-col = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
-img2 = img.copy()
 # Blur the image to reduce noise
 img_blur = cv2.medianBlur(img, 5)
+
+
+# In[22]:
+
+
 # Apply hough transform on the image
 circles = cv2.HoughCircles(img_blur, cv2.HOUGH_GRADIENT, 1, img.shape[0]/64, param1=200, param2=10, minRadius=5, maxRadius=7)
+
+
+# In[23]:
+
+
 # Draw detected circles
 if circles is not None:
     circles = np.uint16(np.around(circles))
@@ -54,28 +61,28 @@ if circles is not None:
         #cv2.circle(img, (i[0], i[1]), 2, (0, 0, 255), 3)
 
 
-# In[4]:
+# In[29]:
 
 
-col = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+side_by_side(img, color)
 
 
-# In[5]:
-
-
-side_by_side(img, col)
-
-
-# In[10]:
-
-
-col[1,2,:]
-
-
-# In[10]:
+# In[28]:
 
 
 help(cv2.HoughCircles)
+
+
+# In[26]:
+
+
+help(cv2.cvtColor)
+
+
+# In[ ]:
+
+
+
 
 
 # In[ ]:
