@@ -14,7 +14,7 @@ import scipy.fftpack as F
 import scipy.io as io
 
 import cv2
-import matplotlib.image as img
+#import matplotlib.image as img
 
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt

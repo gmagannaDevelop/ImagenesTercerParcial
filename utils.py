@@ -3,7 +3,7 @@ from typing import Optional, Callable, Tuple, List, NoReturn
 from functools import partial
 
 import matplotlib.pyplot as plt
-import matplotlib.image as img
+#import matplotlib.image as img
 
 import numpy as np
 import cv2 as cv
