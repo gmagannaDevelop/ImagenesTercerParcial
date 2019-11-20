@@ -11,7 +11,7 @@
 # 
 # c. (1 punto) Continuando con la imagen anterior. Cuente y etiquete cuantos objetos de la segmentación pueden considerarse 2 células agrupadas, y cuantos y cuales más de 2 células.
 
-# In[35]:
+# In[1]:
 
 
 # Functional programing tools : 
@@ -32,59 +32,103 @@ import cv2 as cv
 # Machine Learning :
 from sklearn.cluster import KMeans
 
+# Jupyter reimport utils :
+import importlib
+
+
+# In[2]:
+
+
 # Custom :
-from mfilt_funcs import *
-from utils import *
+import mfilt_funcs as mfs
+importlib.reload(mfs)
+import mfilt_funcs as mfs
 
 
-# In[34]:
+import utils
+importlib.reload(utils)
+import utils
+
+
+# In[3]:
 
 
 #plt.style.available
 
 
-# In[21]:
+# In[39]:
 
 
 plt.style.use('seaborn-deep')
-plt.rcParams['figure.figsize'] = (12, 7)
+plt.rcParams['figure.figsize'] = (10, 5)
 
 
-# In[22]:
+# In[77]:
 
 
-img   = cv.imread('imagenes/Ex3Preg6(a).tif', cv.IMREAD_GRAYSCALE)
-color = cv.cvtColor(img, cv.COLOR_GRAY2RGB) # Color copy, to draw colored circles
-img2  = img.copy() # Another copy
+img     = cv.imread('imagenes/Ex3Preg6(a).tif', cv.IMREAD_GRAYSCALE)
+color   = cv.cvtColor(img, cv.COLOR_GRAY2RGB) # Color copy, to draw colored circles
 
 
 # a. (0.5 puntos) Usando una técnica de umbralización global, segmente la imagen y muestre el resultado de la segmetnación.
 
-# In[ ]:
-
-
-intensity = pd.core.frame.DataFrame(dict(intensity=img.flatten()))
-
-
-# In[33]:
-
-
-intensity.hist()
-
-
 # In[41]:
 
 
-kmeans = KMeans(n_clusters=2, random_state=0, verbose=False).fit(intensity)
+intensities = pd.core.frame.DataFrame(dict(intensity=gthresh.flatten()))
 
 
 # In[42]:
 
 
-img[kmeans.labels_]
+intensities.hist()
 
 
-# In[33]:
+# In[43]:
+
+
+kmeans = KMeans(n_clusters=2, random_state=0, verbose=False).fit(intensities)
+K = kmeans.cluster_centers_.mean()
+
+
+# In[74]:
+
+
+intensities.hist()
+plt.axvline(K, color='r')
+list(map(lambda x: plt.axvline(x, color='g'), kmeans.cluster_centers_))
+_ = plt.title(f"Means = {kmeans.cluster_centers_.tolist()}, K = {K}", size=16)
+
+
+# In[89]:
+
+
+gthresh = img.copy()
+gthresh[ gthresh >= K ] = 255
+gthresh[ gthresh < K ] = 0 
+
+
+# In[90]:
+
+
+utils.side_by_side(img, gthresh)
+
+
+# In[86]:
+
+
+ret, thresh1 = cv.threshold(img, K, 255, cv.THRESH_BINARY)
+
+
+# In[87]:
+
+
+utils.side_by_side(img, thresh1)
+
+
+# Como podemos ver, una técinca de umbralización estándar como k-medias móviles, con dos medias, da resultados muy pobres.
+
+# In[24]:
 
 
 # Blur the image to reduce noise
