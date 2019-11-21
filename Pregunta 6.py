@@ -74,7 +74,7 @@ lmap = lambda x, y: list(map(x, y))
 lfilter = lambda x, y: list(filter(x, y))
 
 
-# In[195]:
+# In[226]:
 
 
 def segplot(
@@ -134,6 +134,25 @@ def watershed_viz(image, distance, labels):
 
     fig.tight_layout()
     plt.show()
+##
+
+def ez_watershed(image: np.ndarray, footprint: Optional[np.array] = None, **kw):
+    distance = ndi.distance_transform_edt(image)
+    if footprint:
+        fp = footprint
+    else:
+        fp = np.ones((10, 10))
+    local_maxi = peak_local_max(
+        distance, 
+        indices=False, 
+        footprint=np.ones((10, 10)),
+        labels=image,
+        **kw
+    )
+    markers = ndi.label(local_maxi)[0]
+    labels  = watershed(-distance, markers, mask=image)
+    
+    return markers, distance, labels
 ##
 
 
@@ -437,20 +456,31 @@ pad = lambda x: cv.copyMakeBorder(np.float64(x.image), 10, 10, 10, 10, cv.BORDER
 
 
 
-# In[190]:
+# In[215]:
 
 
 # Now we want to separate the two objects in image
 # Generate the markers as local maxima of the distance to the background
-image = pad(cells[2][0])
+image = pad(cells[1][-3])
 distance = ndi.distance_transform_edt(image)
-local_maxi = peak_local_max(distance, indices=False, footprint=np.ones((3, 3)),
-                            labels=image)
+local_maxi = peak_local_max(
+    distance, 
+    indices=False, 
+    footprint=np.ones((10, 10)),
+    labels=image
+)
 markers = ndi.label(local_maxi)[0]
-labels = watershed(-distance, markers, mask=image)
+labels  = watershed(-distance, markers, mask=image)
 
 
-# In[194]:
+# In[227]:
+
+
+image = pad(cells[2][-4])
+markers, distance, labels = ez_watershed(image)
+
+
+# In[228]:
 
 
 watershed_viz(image, distance, labels)
