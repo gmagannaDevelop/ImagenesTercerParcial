@@ -11,11 +11,12 @@
 # 
 # c. (1 punto) Continuando con la imagen anterior. Cuente y etiquete cuantos objetos de la segmentación pueden considerarse 2 células agrupadas, y cuantos y cuales más de 2 células.
 
-# In[1]:
+# In[115]:
 
 
 # Functional programing tools : 
 from functools import partial, reduce
+from itertools import chain
 
 # Visualisation : 
 import matplotlib.pyplot as plt
@@ -263,15 +264,35 @@ areas.describe(), sns.boxplot(areas)
 sns.distplot(areas2)
 
 
-# In[108]:
+# In[123]:
+
+
+kmeans2 = KMeans(n_clusters=3, random_state=0, verbose=False).fit(areas)
+centers = pd.core.frame.DataFrame({
+    "means": chain.from_iterable(kmeans2.cluster_centers_)
+})
+centers['k'] = centers.rolling(2).mean()
+centers
+
+
+# In[130]:
+
+
+sns.distplot(areas)
+list(map(lambda x: plt.axvline(x, color='r'), centers.k.dropna()))
+list(map(lambda x: plt.axvline(x, color='g'), centers.means))
+_ = plt.title(f"Means = {centers.means.tolist()}, K = {centers.k.dropna().tolist()}", size=16)
+
+
+# In[134]:
 
 
 fig, ax = plt.subplots(figsize=(15, 10))
-ax.imshow(imgb2, cmap='gray')
+ax.imshow(imgb2c, cmap='gray')
 
 for region in objs:
     # take regions with large enough areas
-    if region.area >= 10 and region.area < areas.area.max():
+    if region.area <= centers.k.dropna().tolist()[0]:
         # draw rectangle around segmented cells
         minr, minc, maxr, maxc = region.bbox
         rect = mpatches.Rectangle((minc, minr), maxc - minc, maxr - minr,
