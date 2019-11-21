@@ -211,36 +211,39 @@ utils.side_by_side(imgb, imgbc)
 # 
 # Esto nos indica que tal vez las células no se asemejan tanto a un círculo. Por esta razón, no se explorará más a fondo esta vía de acción. Cabe mencionar que la transformada encuentra círculos en el texto de encabezado : **Imagen con apertura**. Por esta razón, en delante se trabajará con otra imagen recortada a mano para excluir este texto que podría causar problemas en la segmentación más adelante.
 
-# In[28]:
+# In[95]:
 
 
 imgb2  = cv.imread('imagenes/Ex3Preg6(b)3.tif', cv.IMREAD_GRAYSCALE)
-plt.imshow(imgb2, cmap='gray')
+imgb2c = clear_border(imgb2)
+utils.side_by_side(imgb2, imgb2c)
 
 
-# In[34]:
+# In[97]:
 
 
-sns.distplot(imgb2.flatten())
+sns.distplot(imgb2c.flatten())
 
 
 # Imagen claramente binaria.
 
-# In[29]:
+# In[102]:
 
 
-label_image, n_objs = label(imgb2, return_num=True)
-plt.imshow(label_image)
+label_image, n_objs = label(imgb2c, return_num=True)
+fig, ax = plt.subplots(figsize=(10, 10))
+#ax.imshow(label_image[100:200,0:100:])
+ax.imshow(label_image)
 print(n_objs)
 
 
-# In[74]:
+# In[103]:
 
 
 objs = regionprops(label_image)
 
 
-# In[75]:
+# In[104]:
 
 
 areas = pd.core.frame.DataFrame({
@@ -248,36 +251,27 @@ areas = pd.core.frame.DataFrame({
 })
 
 
-# In[76]:
+# In[105]:
 
 
 areas.describe(), sns.boxplot(areas)
 
 
-# In[77]:
-
-
-areas2 = areas[ areas.area != areas.area.max() ]
-areas2.describe(), sns.boxplot(areas2)
-
-
-# In[78]:
+# In[107]:
 
 
 sns.distplot(areas2)
 
 
-# In[83]:
+# In[108]:
 
 
-image_label_overlay = label2rgb(label_image, image=imgb2)
-
-fig, ax = plt.subplots(figsize=(10, 6))
-ax.imshow(image_label_overlay, cmap='gray')
+fig, ax = plt.subplots(figsize=(15, 10))
+ax.imshow(imgb2, cmap='gray')
 
 for region in objs:
     # take regions with large enough areas
-    if region.area >= 0:
+    if region.area >= 10 and region.area < areas.area.max():
         # draw rectangle around segmented cells
         minr, minc, maxr, maxc = region.bbox
         rect = mpatches.Rectangle((minc, minr), maxc - minc, maxr - minr,
@@ -289,10 +283,10 @@ plt.tight_layout()
 plt.show()
 
 
-# In[80]:
+# In[ ]:
 
 
-help(ax.imshow)
+
 
 
 # # Extra
