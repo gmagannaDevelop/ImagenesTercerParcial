@@ -248,12 +248,7 @@ print(n_objs)
 # In[26]:
 
 
-objs = regionprops(label_image)
-
-
-# In[27]:
-
-
+objs = regionprops(label_image) 
 areas = pd.core.frame.DataFrame({
     'area': map(lambda x: x.area, objs)
 })
@@ -271,10 +266,29 @@ areas.describe(), sns.boxplot(areas)
 sns.distplot(areas, kde=False, rug=True)
 
 
-# In[31]:
+# In[41]:
 
 
-kmeans2 = KMeans(n_clusters=3, random_state=0, verbose=False).fit(areas)
+_ = areas.area.sort_values()
+_[:10], _[-10:]
+
+
+# Algunos de los primeros valores de las áreas corresponden claramente a falsos positivos, porque no tenemos células de uno o dos pixeles. Estos pixeles blancos no se observaban en la imagen original, de cualquier manera se retirarán manualmente para no sesgar el análisis posterior.
+
+# In[44]:
+
+
+objs2  = regionprops(label_image)
+objs2  = list(filter(lambda x: x if x.area > 2 else False, objs2))
+areas2 = pd.core.frame.DataFrame({
+    'area': map(lambda x: x.area, objs2)
+})
+
+
+# In[45]:
+
+
+kmeans2 = KMeans(n_clusters=3, random_state=0, verbose=False).fit(areas2)
 centers = pd.core.frame.DataFrame({
     "means": chain.from_iterable(kmeans2.cluster_centers_)
 })
@@ -282,22 +296,22 @@ centers['k'] = centers.rolling(2).mean()
 centers
 
 
-# In[32]:
+# In[47]:
 
 
-sns.distplot(areas, kde=False, rug=True)
+sns.distplot(areas2, kde=False, rug=True)
 list(map(lambda x: plt.axvline(x, color='r'), centers.k.dropna()))
 list(map(lambda x: plt.axvline(x, color='g'), centers.means))
 _ = plt.title(f"Means = {centers.means.tolist()}, K = {centers.k.dropna().tolist()}", size=16)
 
 
-# In[33]:
+# In[49]:
 
 
 fig, ax = plt.subplots(figsize=(9, 9))
 ax.imshow(imgb2c, cmap='gray')
 
-for region in objs:
+for region in objs2:
     # take regions with large enough areas
     if region.area <= centers.k.dropna().tolist()[0]:
         # draw rectangle around segmented cells
@@ -311,7 +325,7 @@ plt.tight_layout()
 plt.show()
 
 
-# In[34]:
+# In[50]:
 
 
 fig, ax = plt.subplots(figsize=(9, 9))
@@ -332,7 +346,7 @@ plt.tight_layout()
 plt.show()
 
 
-# In[35]:
+# In[51]:
 
 
 fig, ax = plt.subplots(figsize=(9, 9))
@@ -354,18 +368,3 @@ plt.show()
 
 
 # # Extra
-
-# In[26]:
-
-
-label_image, n_objs = label(imgb2, return_num=True)
-plt.imshow(label_image)
-print(n_objs)
-
-
-# In[ ]:
-
-
-cleared = clear_border()
-plt.imshow(cleared)
-
