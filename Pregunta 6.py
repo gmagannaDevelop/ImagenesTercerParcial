@@ -304,10 +304,46 @@ plt.tight_layout()
 plt.show()
 
 
-# In[ ]:
+# In[135]:
 
 
+fig, ax = plt.subplots(figsize=(15, 10))
+ax.imshow(imgb2c, cmap='gray')
 
+for region in objs:
+    # take regions with large enough areas
+    ks = centers.k.dropna().tolist()
+    if region.area > ks[0] and region.area <= ks[1]:
+        # draw rectangle around segmented cells
+        minr, minc, maxr, maxc = region.bbox
+        rect = mpatches.Rectangle((minc, minr), maxc - minc, maxr - minr,
+                                  fill=False, edgecolor='red', linewidth=2)
+        ax.add_patch(rect)
+
+#ax.set_axis_off()
+plt.tight_layout()
+plt.show()
+
+
+# In[136]:
+
+
+fig, ax = plt.subplots(figsize=(15, 10))
+ax.imshow(imgb2c, cmap='gray')
+ks = centers.k.dropna().tolist()
+
+for region in objs:
+    # take regions with large enough areas
+    if region.area > ks[1]:
+        # draw rectangle around segmented cells
+        minr, minc, maxr, maxc = region.bbox
+        rect = mpatches.Rectangle((minc, minr), maxc - minc, maxr - minr,
+                                  fill=False, edgecolor='red', linewidth=2)
+        ax.add_patch(rect)
+
+#ax.set_axis_off()
+plt.tight_layout()
+plt.show()
 
 
 # # Extra
