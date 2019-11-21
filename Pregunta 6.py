@@ -11,7 +11,7 @@
 # 
 # c. (1 punto) Continuando con la imagen anterior. Cuente y etiquete cuantos objetos de la segmentación pueden considerarse 2 células agrupadas, y cuantos y cuales más de 2 células.
 
-# In[115]:
+# In[1]:
 
 
 # Functional programing tools : 
@@ -70,7 +70,7 @@ plt.style.use('seaborn-deep')
 plt.rcParams['figure.figsize'] = (10, 5)
 
 
-# In[6]:
+# In[5]:
 
 
 img   = cv.imread('imagenes/Ex3Preg6(a).tif', cv.IMREAD_GRAYSCALE)
@@ -79,41 +79,48 @@ color = cv.cvtColor(img, cv.COLOR_GRAY2RGB) # Color copy, to draw colored circle
 
 # ## a. (0.5 puntos) Usando una técnica de umbralización global, segmente la imagen y muestre el resultado de la segmetnación.
 
-# In[7]:
+# In[6]:
 
 
 intensities = pd.core.frame.DataFrame(dict(intensity=img.flatten()))
 
 
+# In[7]:
+
+
+sns.distplot(intensities, kde=False, rug=True, bins=10)
+
+
 # In[8]:
-
-
-intensities.hist()
-
-
-# In[9]:
 
 
 kmeans = KMeans(n_clusters=2, random_state=0, verbose=False).fit(intensities)
 K = kmeans.cluster_centers_.mean()
 
 
-# In[10]:
+# kmeans2 = KMeans(n_clusters=3, random_state=0, verbose=False).fit(areas)
+# centers = pd.core.frame.DataFrame({
+#     "means": chain.from_iterable(kmeans2.cluster_centers_)
+# })
+# centers['k'] = centers.rolling(2).mean()
+# centers
+
+# In[9]:
 
 
-intensities.hist()
+sns.distplot(intensities, kde=False, rug=True, bins=10)
 plt.axvline(K, color='r')
 list(map(lambda x: plt.axvline(x, color='g'), kmeans.cluster_centers_))
-_ = plt.title(f"Means = {kmeans.cluster_centers_.tolist()}, K = {K}", size=16)
+_ = plt.title(f"Means = {list(chain.from_iterable(kmeans.cluster_centers_))}, K = {K}", size=16)
 
 
-# In[11]:
+# In[10]:
 
 
 thresh1 = cv.threshold(img, K, 255, cv.THRESH_BINARY)[1]
 
 
-# In[12]:
+# In[11]:
 
 
 utils.side_by_side(img, thresh1)
@@ -121,13 +128,13 @@ utils.side_by_side(img, thresh1)
 
 # Como podemos ver, una técinca de umbralización estándar como k-medias móviles, con dos medias, da resultados muy pobres.
 
-# In[13]:
+# In[12]:
 
 
 otsu1 = cv.threshold(img,0,255,cv.THRESH_BINARY+cv.THRESH_OTSU)[1]
 
 
-# In[14]:
+# In[13]:
 
 
 utils.side_by_side(img, otsu1)
@@ -135,14 +142,14 @@ utils.side_by_side(img, otsu1)
 
 # El algoritmo de Otsu no logra mejorar mucho la segmentación (esto era de esperarse dado que el histograma original era claramente bimodal). 
 
-# In[15]:
+# In[14]:
 
 
 gblur = cv.GaussianBlur(img,(3,3),0)
 otsu2 = cv.threshold(gblur,0,255,cv.THRESH_BINARY+cv.THRESH_OTSU)[1]
 
 
-# In[16]:
+# In[15]:
 
 
 utils.side_by_side(img, otsu2)
@@ -150,14 +157,14 @@ utils.side_by_side(img, otsu2)
 
 # El algoritmo de Otsu no logra mejorar mucho la segmentación aún en combinación con un suavizado Gaussiano.
 
-# In[17]:
+# In[16]:
 
 
 img_blur = cv.medianBlur(img, 5)
 circles = cv.HoughCircles(img_blur, cv.HOUGH_GRADIENT, 1, img.shape[0]/64, param1=200, param2=10, minRadius=5, maxRadius=7)
 
 
-# In[18]:
+# In[17]:
 
 
 if circles is not None:
@@ -166,7 +173,7 @@ if circles is not None:
         cv.circle(img, (i[0], i[1]), i[2], (0, 0, 255), 2)
 
 
-# In[19]:
+# In[18]:
 
 
 plt.imshow(img, cmap='gray')
@@ -176,7 +183,7 @@ plt.imshow(img, cmap='gray')
 
 # ## b. (0.5 puntos) A la imagenoriginal se le aplicó una umbralización con valores locales yal resultado se le realizó una apertura morbológica obteniendo la imagen Ex3Preg6(b).tif. Usando esta imagen,cuente y etiquete cuantos objetos de la segmentación pueden considerarse células independientes. 
 
-# In[20]:
+# In[19]:
 
 
 imgb  = cv.imread('imagenes/Ex3Preg6(b).tif', cv.IMREAD_GRAYSCALE)
@@ -187,13 +194,13 @@ utils.side_by_side(imgb, imgbc)
 # ### Primera aproximación :
 # El uso de la transformada de Hough para círculos, no para líneas. Al ver la imagen, uno podría pensar que un círculo es una buena aproximación de la forma de una célula, por lo tanto los cículos encontrados por una transformada de Hough serían las células que buscamos identificar, caracterizar y contabilizar
 
-# In[21]:
+# In[20]:
 
 
 circles = cv.HoughCircles(imgb, cv.HOUGH_GRADIENT, 1, img.shape[0]/64, param1=200, param2=10, minRadius=5, maxRadius=15)
 
 
-# In[22]:
+# In[21]:
 
 
 if circles is not None:
@@ -202,7 +209,7 @@ if circles is not None:
         cv.circle(imgbc, (i[0], i[1]), i[2], (155, 0, 0), 2)
 
 
-# In[23]:
+# In[22]:
 
 
 utils.side_by_side(imgb, imgbc)
@@ -212,7 +219,7 @@ utils.side_by_side(imgb, imgbc)
 # 
 # Esto nos indica que tal vez las células no se asemejan tanto a un círculo. Por esta razón, no se explorará más a fondo esta vía de acción. Cabe mencionar que la transformada encuentra círculos en el texto de encabezado : **Imagen con apertura**. Por esta razón, en delante se trabajará con otra imagen recortada a mano para excluir este texto que podría causar problemas en la segmentación más adelante.
 
-# In[95]:
+# In[23]:
 
 
 imgb2  = cv.imread('imagenes/Ex3Preg6(b)3.tif', cv.IMREAD_GRAYSCALE)
@@ -220,15 +227,15 @@ imgb2c = clear_border(imgb2)
 utils.side_by_side(imgb2, imgb2c)
 
 
-# In[97]:
+# In[24]:
 
 
-sns.distplot(imgb2c.flatten())
+sns.distplot(imgb2c.flatten(), kde=False, rug=True)
 
 
 # Imagen claramente binaria.
 
-# In[102]:
+# In[25]:
 
 
 label_image, n_objs = label(imgb2c, return_num=True)
@@ -238,13 +245,13 @@ ax.imshow(label_image)
 print(n_objs)
 
 
-# In[103]:
+# In[26]:
 
 
 objs = regionprops(label_image)
 
 
-# In[104]:
+# In[27]:
 
 
 areas = pd.core.frame.DataFrame({
@@ -252,19 +259,19 @@ areas = pd.core.frame.DataFrame({
 })
 
 
-# In[105]:
+# In[28]:
 
 
 areas.describe(), sns.boxplot(areas)
 
 
-# In[107]:
+# In[30]:
 
 
-sns.distplot(areas2)
+sns.distplot(areas, kde=False, rug=True)
 
 
-# In[123]:
+# In[31]:
 
 
 kmeans2 = KMeans(n_clusters=3, random_state=0, verbose=False).fit(areas)
@@ -275,19 +282,19 @@ centers['k'] = centers.rolling(2).mean()
 centers
 
 
-# In[130]:
+# In[32]:
 
 
-sns.distplot(areas)
+sns.distplot(areas, kde=False, rug=True)
 list(map(lambda x: plt.axvline(x, color='r'), centers.k.dropna()))
 list(map(lambda x: plt.axvline(x, color='g'), centers.means))
 _ = plt.title(f"Means = {centers.means.tolist()}, K = {centers.k.dropna().tolist()}", size=16)
 
 
-# In[134]:
+# In[33]:
 
 
-fig, ax = plt.subplots(figsize=(15, 10))
+fig, ax = plt.subplots(figsize=(9, 9))
 ax.imshow(imgb2c, cmap='gray')
 
 for region in objs:
@@ -304,15 +311,15 @@ plt.tight_layout()
 plt.show()
 
 
-# In[135]:
+# In[34]:
 
 
-fig, ax = plt.subplots(figsize=(15, 10))
+fig, ax = plt.subplots(figsize=(9, 9))
 ax.imshow(imgb2c, cmap='gray')
+ks = centers.k.dropna().tolist()
 
 for region in objs:
     # take regions with large enough areas
-    ks = centers.k.dropna().tolist()
     if region.area > ks[0] and region.area <= ks[1]:
         # draw rectangle around segmented cells
         minr, minc, maxr, maxc = region.bbox
@@ -325,10 +332,10 @@ plt.tight_layout()
 plt.show()
 
 
-# In[136]:
+# In[35]:
 
 
-fig, ax = plt.subplots(figsize=(15, 10))
+fig, ax = plt.subplots(figsize=(9, 9))
 ax.imshow(imgb2c, cmap='gray')
 ks = centers.k.dropna().tolist()
 
@@ -361,79 +368,4 @@ print(n_objs)
 
 cleared = clear_border()
 plt.imshow(cleared)
-
-
-# # Scikit-Image example :
-
-# In[151]:
-
-
-image = data.coins()[50:-50, 50:-50]
-
-# apply threshold
-thresh = threshold_otsu(image)
-bw = closing(image > thresh, square(3))
-plt.imshow(bw)
-
-
-# In[152]:
-
-
-# remove artifacts connected to image border
-cleared = clear_border(bw)
-plt.imshow(cleared)
-
-
-# In[154]:
-
-
-# label image regions
-label_image = label(cleared)
-plt.imshow(label_image)
-
-
-# In[155]:
-
-
-image_label_overlay = label2rgb(label_image, image=image)
-
-fig, ax = plt.subplots(figsize=(10, 6))
-ax.imshow(image_label_overlay)
-
-for region in regionprops(label_image):
-    # take regions with large enough areas
-    if region.area >= 100:
-        # draw rectangle around segmented coins
-        minr, minc, maxr, maxc = region.bbox
-        rect = mpatches.Rectangle((minc, minr), maxc - minc, maxr - minr,
-                                  fill=False, edgecolor='red', linewidth=2)
-        ax.add_patch(rect)
-
-ax.set_axis_off()
-plt.tight_layout()
-plt.show()
-
-
-# In[147]:
-
-
-#help(cv2.HoughCircles)
-
-
-# In[148]:
-
-
-#help(cv2.cvtColor)
-
-
-# In[158]:
-
-
-help(label)
-
-
-# In[ ]:
-
-
-
 
