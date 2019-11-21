@@ -57,6 +57,14 @@ importlib.reload(utils)
 import utils
 
 
+# In[75]:
+
+
+# Being lazy :
+lmap = lambda x, y: list(map(x, y))
+lfilter = lambda x, y: list(filter(x, y))
+
+
 # In[3]:
 
 
@@ -91,27 +99,26 @@ intensities = pd.core.frame.DataFrame(dict(intensity=img.flatten()))
 sns.distplot(intensities, kde=False, rug=True, bins=10)
 
 
-# In[8]:
+# In[69]:
 
 
 kmeans = KMeans(n_clusters=2, random_state=0, verbose=False).fit(intensities)
-K = kmeans.cluster_centers_.mean()
+K = int(kmeans.cluster_centers_.mean())
 
 
-# kmeans2 = KMeans(n_clusters=3, random_state=0, verbose=False).fit(areas)
-# centers = pd.core.frame.DataFrame({
-#     "means": chain.from_iterable(kmeans2.cluster_centers_)
-# })
-# centers['k'] = centers.rolling(2).mean()
-# centers
+# In[99]:
 
-# In[9]:
+
+centers1 = lmap(int, list(chain.from_iterable(kmeans.cluster_centers_)))
+
+
+# In[74]:
 
 
 sns.distplot(intensities, kde=False, rug=True, bins=10)
 plt.axvline(K, color='r')
-list(map(lambda x: plt.axvline(x, color='g'), kmeans.cluster_centers_))
-_ = plt.title(f"Means = {list(chain.from_iterable(kmeans.cluster_centers_))}, K = {K}", size=16)
+lmap(lambda x: plt.axvline(x, color='g'), centers1)
+_ = plt.title(f"Means = {centers1}, K = {K}", size=16)
 
 
 # In[10]:
@@ -285,7 +292,7 @@ areas2 = pd.core.frame.DataFrame({
 })
 
 
-# In[45]:
+# In[98]:
 
 
 kmeans2 = KMeans(n_clusters=3, random_state=0, verbose=False).fit(areas2)
@@ -293,19 +300,32 @@ centers = pd.core.frame.DataFrame({
     "means": chain.from_iterable(kmeans2.cluster_centers_)
 })
 centers['k'] = centers.rolling(2).mean()
-centers
+print(centers)
+centers = centers.applymap(lambda x: np.int64(x) if not np.isnan(x) else x)
+print(centers)
 
 
-# In[47]:
+# In[61]:
 
 
 sns.distplot(areas2, kde=False, rug=True)
-list(map(lambda x: plt.axvline(x, color='r'), centers.k.dropna()))
-list(map(lambda x: plt.axvline(x, color='g'), centers.means))
-_ = plt.title(f"Means = {centers.means.tolist()}, K = {centers.k.dropna().tolist()}", size=16)
+lmap(lambda x: plt.axvline(x, color='r'), centers.k.dropna())
+lmap(lambda x: plt.axvline(x, color='g'), centers.means)
+_ = plt.title(f"Means = {lmap(int, centers.means.tolist())}, K = {lmap(int, centers.k.dropna().tolist())}", size=16)
 
 
-# In[49]:
+# In[100]:
+
+
+ks = centers.k.dropna().tolist()
+cells = [
+    lfilter(lambda x: x if x.area < ks[0] else False, objs2),
+    lfilter(lambda x: x if x.area >= ks[0]  and x.area < ks[1] else False, objs2),
+    lfilter(lambda x: x if x.area >= ks[1] else False, objs2)
+]
+
+
+# In[54]:
 
 
 fig, ax = plt.subplots(figsize=(9, 9))
@@ -313,7 +333,7 @@ ax.imshow(imgb2c, cmap='gray')
 
 for region in objs2:
     # take regions with large enough areas
-    if region.area <= centers.k.dropna().tolist()[0]:
+    if region.area < centers.k.dropna().tolist()[0]:
         # draw rectangle around segmented cells
         minr, minc, maxr, maxc = region.bbox
         rect = mpatches.Rectangle((minc, minr), maxc - minc, maxr - minr,
@@ -368,3 +388,39 @@ plt.show()
 
 
 # # Extra
+
+# In[53]:
+
+
+filter(lambda x: x, [True, False])
+
+
+# In[55]:
+
+
+range(ks[0], ks[1])
+
+
+# In[76]:
+
+
+plt.close('all')
+
+
+# In[80]:
+
+
+(lambda x, y: x(*y))(print, [1, 2, 3, ""])
+
+
+# In[89]:
+
+
+help(pd.core.frame.DataFrame.lapply)
+
+
+# In[ ]:
+
+
+
+
