@@ -74,7 +74,7 @@ lmap = lambda x, y: list(map(x, y))
 lfilter = lambda x, y: list(filter(x, y))
 
 
-# In[226]:
+# In[243]:
 
 
 def segplot(
@@ -136,9 +136,11 @@ def watershed_viz(image, distance, labels):
     plt.show()
 ##
 
-def ez_watershed(image: np.ndarray, footprint: Optional[np.array] = None, **kw):
+def ez_watershed(image: np.ndarray, footprint: Optional[np.array] = None, **kw) -> Tuple[int, int, int]:
+    """
+    """
     distance = ndi.distance_transform_edt(image)
-    if footprint:
+    if footprint is not None:
         fp = footprint
     else:
         fp = np.ones((10, 10))
@@ -436,12 +438,14 @@ conteo
 plt.close('all')
 
 
-# In[166]:
+# In[262]:
 
 
+"""
 for cell in cells[2]:
     fig, ax = plt.subplots(figsize=(10, 10))
     ax.imshow(cell.image, cmap='gray')
+"""
 
 
 # In[187]:
@@ -456,11 +460,12 @@ pad = lambda x: cv.copyMakeBorder(np.float64(x.image), 10, 10, 10, 10, cv.BORDER
 
 
 
-# In[215]:
+# In[265]:
 
 
 # Now we want to separate the two objects in image
 # Generate the markers as local maxima of the distance to the background
+"""
 image = pad(cells[1][-3])
 distance = ndi.distance_transform_edt(image)
 local_maxi = peak_local_max(
@@ -471,12 +476,64 @@ local_maxi = peak_local_max(
 )
 markers = ndi.label(local_maxi)[0]
 labels  = watershed(-distance, markers, mask=image)
+"""
 
 
-# In[227]:
+# In[274]:
 
 
-image = pad(cells[2][-4])
+areas2 = pd.core.series.Series(lmap(lambda x: x.area, cells[1]))
+sns.distplot(areas2)
+plt.axvline(areas2.mean(), color='g')
+plt.axvline(areas2.mean() + areas2.std() , color='r')
+plt.axvline(areas2.mean() - areas2.std() , color='r')
+
+
+# In[275]:
+
+
+grandes = [cell for cell in cells[1] if cell.area < areas2.mean() - 0.5*areas2.std()]
+
+
+# In[285]:
+
+
+cells[1][2].area
+
+
+# In[286]:
+
+
+propiedades2 = pd.core.frame.DataFrame({
+    "A * P": lmap(lambda x: x.area * x.perimeter, cells[1]),
+    "A / P": lmap(lambda x: x.area / x.perimeter, cells[1]),
+    "P / A": lmap(lambda x: x.perimeter / x.area, cells[1]),
+    "convex A": lmap(lambda x: x.convex_area, cells[1])
+})
+
+
+# In[287]:
+
+
+propiedades2.hist()
+
+
+# In[277]:
+
+
+for cell in grandes:
+    image = pad(cell)
+    markers, distance, labels = ez_watershed(image, footprint=np.ones((5, 5)))
+    watershed_viz(image, distance, labels)
+
+
+# In[247]:
+
+
+areas3 = lmap(lambda x: x.area, cells[2])
+mean_area3 = np.mean(areas3)
+sns.distplot(areas3)
+plt.axvline(mean_area3, color='r')
 
 
 # In[229]:
@@ -488,63 +545,15 @@ for cell in cells[2]:
     watershed_viz(image, distance, labels)
 
 
+# In[261]:
+
+
+markers, distance, labels = ez_watershed(cells[1][-6].image, footprint=np.ones((5, 5)))
+markers
+
+
 # In[ ]:
 
 
 
 
-
-# In[160]:
-
-
-seed_point = (100, 220)  # Experiment with the seed point
-flood_mask = seg.flood(imgb2c, seed_point, tolerance=0.3)  # Experiment with tolerance
-
-
-# In[153]:
-
-
-fig, ax = image_show(imgb2c)
-ax.imshow(flood_mask, alpha=0.3);
-
-
-# In[109]:
-
-
-fig, ax = plt.subplots(figsize=(9, 9))
-ax.imshow(imgb2c[100:200,0:200][0:60,50:110], cmap='gray')
-
-
-# In[108]:
-
-
-fig, ax = plt.subplots(figsize=(9, 9))
-ax.imshow(imgb2c[200:300,200:300], cmap='gray')
-
-
-# In[112]:
-
-
-fig, ax = plt.subplots(figsize=(9, 9))
-ax.imshow(imgb2c[0:100,150:250], cmap='gray')
-
-
-# In[182]:
-
-
-plt.imshow(cv.copyMakeBorder(np.float64(cells[2][-1].image), 10, 10, 10, 10, cv.BORDER_CONSTANT))
-
-
-# In[180]:
-
-
-np.float64(cells[2][-1].image)
-
-
-# In[173]:
-
-
-help(cv.copyMakeBorder)
-
-
-# # Extra
