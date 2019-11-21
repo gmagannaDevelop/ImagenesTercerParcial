@@ -11,7 +11,7 @@
 # 
 # c. (1 punto) Continuando con la imagen anterior. Cuente y etiquete cuantos objetos de la segmentación pueden considerarse 2 células agrupadas, y cuantos y cuales más de 2 células.
 
-# In[143]:
+# In[148]:
 
 
 # Annotations
@@ -33,13 +33,18 @@ import pandas as pd
 
 # Image processing : 
 import cv2 as cv
+from scipy import ndimage as ndi
 import skimage
 from skimage import data
+import skimage.segmentation as seg
 from skimage.filters import threshold_otsu
 from skimage.segmentation import clear_border
 from skimage.measure import label, regionprops
 from skimage.morphology import closing, square
 from skimage.color import label2rgb
+from skimage.morphology import watershed
+from skimage.feature import peak_local_max
+
 
 # Machine Learning :
 from sklearn.cluster import KMeans
@@ -69,7 +74,7 @@ lmap = lambda x, y: list(map(x, y))
 lfilter = lambda x, y: list(filter(x, y))
 
 
-# In[132]:
+# In[195]:
 
 
 def segplot(
@@ -95,6 +100,39 @@ def segplot(
     if title:
         plt.title(title)
     plt.tight_layout()
+    plt.show()
+##
+
+def image_show(image, nrows=1, ncols=1, cmap='gray', **kwargs):
+    """
+        Taken from :
+        https://github.com/gmagannaDevelop/skimage-tutorials/blob/master/lectures/4_segmentation.ipynb
+    """
+    fig, ax = plt.subplots(nrows=nrows, ncols=ncols, figsize=(16, 16))
+    ax.imshow(image, cmap='gray')
+    ax.axis('off')
+    return fig, ax
+##
+
+def watershed_viz(image, distance, labels):
+    """
+        Constructed from the example found in :
+        https://scikit-image.org/docs/dev/auto_examples/segmentation/plot_watershed.html
+    """
+    fig, axes = plt.subplots(ncols=3, figsize=(9, 3), sharex=True, sharey=True)
+    ax = axes.ravel()
+
+    ax[0].imshow(image, cmap=plt.cm.gray)
+    ax[0].set_title('Overlapping objects')
+    ax[1].imshow(-distance, cmap=plt.cm.gray)
+    ax[1].set_title('Distances')
+    ax[2].imshow(labels, cmap=plt.cm.nipy_spectral)
+    ax[2].set_title('Separated objects')
+
+    for a in ax:
+        a.set_axis_off()
+
+    fig.tight_layout()
     plt.show()
 ##
 
@@ -140,7 +178,7 @@ kmeans = KMeans(n_clusters=2, random_state=0, verbose=False).fit(intensities)
 K = int(kmeans.cluster_centers_.mean())
 
 
-# In[99]:
+# In[154]:
 
 
 centers1 = lmap(int, list(chain.from_iterable(kmeans.cluster_centers_)))
@@ -339,13 +377,13 @@ centers = centers.applymap(lambda x: np.int64(x) if not np.isnan(x) else x)
 print(centers)
 
 
-# In[61]:
+# In[146]:
 
 
 sns.distplot(areas2, kde=False, rug=True)
 lmap(lambda x: plt.axvline(x, color='r'), centers.k.dropna())
 lmap(lambda x: plt.axvline(x, color='g'), centers.means)
-_ = plt.title(f"Means = {lmap(int, centers.means.tolist())}, K = {lmap(int, centers.k.dropna().tolist())}", size=16)
+_ = plt.title(f"Means = {centers.means.tolist()}, Ks = {centers.k.dropna().tolist()}", size=16)
 
 
 # In[100]:
@@ -373,6 +411,71 @@ conteo = {f"Objetos de {i} células": len(cells[i-1]) for i in range(1, 4)}
 conteo
 
 
+# In[165]:
+
+
+plt.close('all')
+
+
+# In[166]:
+
+
+for cell in cells[2]:
+    fig, ax = plt.subplots(figsize=(10, 10))
+    ax.imshow(cell.image, cmap='gray')
+
+
+# In[187]:
+
+
+pad = lambda x: cv.copyMakeBorder(np.float64(x.image), 10, 10, 10, 10, cv.BORDER_CONSTANT)
+
+
+# In[ ]:
+
+
+
+
+
+# In[190]:
+
+
+# Now we want to separate the two objects in image
+# Generate the markers as local maxima of the distance to the background
+image = pad(cells[2][0])
+distance = ndi.distance_transform_edt(image)
+local_maxi = peak_local_max(distance, indices=False, footprint=np.ones((3, 3)),
+                            labels=image)
+markers = ndi.label(local_maxi)[0]
+labels = watershed(-distance, markers, mask=image)
+
+
+# In[194]:
+
+
+watershed_viz(image, distance, labels)
+
+
+# In[ ]:
+
+
+
+
+
+# In[160]:
+
+
+seed_point = (100, 220)  # Experiment with the seed point
+flood_mask = seg.flood(imgb2c, seed_point, tolerance=0.3)  # Experiment with tolerance
+
+
+# In[153]:
+
+
+fig, ax = image_show(imgb2c)
+ax.imshow(flood_mask, alpha=0.3);
+
+
 # In[109]:
 
 
@@ -392,6 +495,24 @@ ax.imshow(imgb2c[200:300,200:300], cmap='gray')
 
 fig, ax = plt.subplots(figsize=(9, 9))
 ax.imshow(imgb2c[0:100,150:250], cmap='gray')
+
+
+# In[182]:
+
+
+plt.imshow(cv.copyMakeBorder(np.float64(cells[2][-1].image), 10, 10, 10, 10, cv.BORDER_CONSTANT))
+
+
+# In[180]:
+
+
+np.float64(cells[2][-1].image)
+
+
+# In[173]:
+
+
+help(cv.copyMakeBorder)
 
 
 # # Extra
