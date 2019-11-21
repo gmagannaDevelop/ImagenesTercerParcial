@@ -11,8 +11,11 @@
 # 
 # c. (1 punto) Continuando con la imagen anterior. Cuente y etiquete cuantos objetos de la segmentación pueden considerarse 2 células agrupadas, y cuantos y cuales más de 2 células.
 
-# In[1]:
+# In[143]:
 
+
+# Annotations
+from typing import Tuple, List, Callable, NoReturn, Any, Optional
 
 # Functional programing tools : 
 from functools import partial, reduce
@@ -30,6 +33,7 @@ import pandas as pd
 
 # Image processing : 
 import cv2 as cv
+import skimage
 from skimage import data
 from skimage.filters import threshold_otsu
 from skimage.segmentation import clear_border
@@ -63,6 +67,36 @@ import utils
 # Being lazy :
 lmap = lambda x, y: list(map(x, y))
 lfilter = lambda x, y: list(filter(x, y))
+
+
+# In[132]:
+
+
+def segplot(
+    img: np.ndarray, 
+    group: skimage.measure._regionprops.RegionProperties, 
+    color: Optional[str] = None,
+    title: Optional[str] = None
+) -> NoReturn:
+    """
+    """
+    if not color:
+        color = 'red'
+        
+    fig, ax = plt.subplots(figsize=(9, 9))
+    ax.imshow(imgb2c, cmap='gray')
+
+    for region in group:
+        minr, minc, maxr, maxc = region.bbox
+        rect = mpatches.Rectangle((minc, minr), maxc - minc, maxr - minr,
+                                  fill=False, edgecolor=color, linewidth=2)
+        ax.add_patch(rect)
+    
+    if title:
+        plt.title(title)
+    plt.tight_layout()
+    plt.show()
+##
 
 
 # In[3]:
@@ -325,67 +359,18 @@ cells = [
 ]
 
 
-# In[110]:
+# In[135]:
 
 
-fig, ax = plt.subplots(figsize=(9, 9))
-ax.imshow(imgb2c, cmap='gray')
-
-for region in cells[0]:
-    # take regions with large enough areas
-    #if region.area < centers.k.dropna().tolist()[0]:
-        # draw rectangle around segmented cells
-        minr, minc, maxr, maxc = region.bbox
-        rect = mpatches.Rectangle((minc, minr), maxc - minc, maxr - minr,
-                                  fill=False, edgecolor='red', linewidth=2)
-        ax.add_patch(rect)
-
-#ax.set_axis_off()
-#plt.title('')
-plt.tight_layout()
-plt.show()
+for cell, color in zip(cells, 'red green blue'.split(' ')):
+    segplot(imgb2c, cell, color=color)
 
 
-# In[113]:
+# In[142]:
 
 
-fig, ax = plt.subplots(figsize=(9, 9))
-ax.imshow(imgb2c, cmap='gray')
-ks = centers.k.dropna().tolist()
-
-for region in cells[1]:
-    # take regions with large enough areas
-    #if region.area > ks[0] and region.area <= ks[1]:
-        # draw rectangle around segmented cells
-        minr, minc, maxr, maxc = region.bbox
-        rect = mpatches.Rectangle((minc, minr), maxc - minc, maxr - minr,
-                                  fill=False, edgecolor='red', linewidth=2)
-        ax.add_patch(rect)
-
-#ax.set_axis_off()
-plt.tight_layout()
-plt.show()
-
-
-# In[114]:
-
-
-fig, ax = plt.subplots(figsize=(9, 9))
-ax.imshow(imgb2c, cmap='gray')
-ks = centers.k.dropna().tolist()
-
-for region in cells[2]:
-    # take regions with large enough areas
-    #if region.area > ks[1]:
-        # draw rectangle around segmented cells
-        minr, minc, maxr, maxc = region.bbox
-        rect = mpatches.Rectangle((minc, minr), maxc - minc, maxr - minr,
-                                  fill=False, edgecolor='red', linewidth=2)
-        ax.add_patch(rect)
-
-#ax.set_axis_off()
-plt.tight_layout()
-plt.show()
+conteo = {f"Objetos de {i} células": len(cells[i-1]) for i in range(1, 4)}
+conteo
 
 
 # In[109]:
@@ -410,39 +395,3 @@ ax.imshow(imgb2c[0:100,150:250], cmap='gray')
 
 
 # # Extra
-
-# In[53]:
-
-
-filter(lambda x: x, [True, False])
-
-
-# In[55]:
-
-
-range(ks[0], ks[1])
-
-
-# In[76]:
-
-
-plt.close('all')
-
-
-# In[80]:
-
-
-(lambda x, y: x(*y))(print, [1, 2, 3, ""])
-
-
-# In[89]:
-
-
-help(pd.core.frame.DataFrame.lapply)
-
-
-# In[ ]:
-
-
-
-
