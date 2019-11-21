@@ -325,15 +325,15 @@ cells = [
 ]
 
 
-# In[54]:
+# In[110]:
 
 
 fig, ax = plt.subplots(figsize=(9, 9))
 ax.imshow(imgb2c, cmap='gray')
 
-for region in objs2:
+for region in cells[0]:
     # take regions with large enough areas
-    if region.area < centers.k.dropna().tolist()[0]:
+    #if region.area < centers.k.dropna().tolist()[0]:
         # draw rectangle around segmented cells
         minr, minc, maxr, maxc = region.bbox
         rect = mpatches.Rectangle((minc, minr), maxc - minc, maxr - minr,
@@ -341,41 +341,21 @@ for region in objs2:
         ax.add_patch(rect)
 
 #ax.set_axis_off()
+#plt.title('')
 plt.tight_layout()
 plt.show()
 
 
-# In[50]:
-
-
-fig, ax = plt.subplots(figsize=(9, 9))
-ax.imshow(imgb2c, cmap='gray')
-ks = centers.k.dropna().tolist()
-
-for region in objs:
-    # take regions with large enough areas
-    if region.area > ks[0] and region.area <= ks[1]:
-        # draw rectangle around segmented cells
-        minr, minc, maxr, maxc = region.bbox
-        rect = mpatches.Rectangle((minc, minr), maxc - minc, maxr - minr,
-                                  fill=False, edgecolor='red', linewidth=2)
-        ax.add_patch(rect)
-
-#ax.set_axis_off()
-plt.tight_layout()
-plt.show()
-
-
-# In[51]:
+# In[113]:
 
 
 fig, ax = plt.subplots(figsize=(9, 9))
 ax.imshow(imgb2c, cmap='gray')
 ks = centers.k.dropna().tolist()
 
-for region in objs:
+for region in cells[1]:
     # take regions with large enough areas
-    if region.area > ks[1]:
+    #if region.area > ks[0] and region.area <= ks[1]:
         # draw rectangle around segmented cells
         minr, minc, maxr, maxc = region.bbox
         rect = mpatches.Rectangle((minc, minr), maxc - minc, maxr - minr,
@@ -385,6 +365,48 @@ for region in objs:
 #ax.set_axis_off()
 plt.tight_layout()
 plt.show()
+
+
+# In[114]:
+
+
+fig, ax = plt.subplots(figsize=(9, 9))
+ax.imshow(imgb2c, cmap='gray')
+ks = centers.k.dropna().tolist()
+
+for region in cells[2]:
+    # take regions with large enough areas
+    #if region.area > ks[1]:
+        # draw rectangle around segmented cells
+        minr, minc, maxr, maxc = region.bbox
+        rect = mpatches.Rectangle((minc, minr), maxc - minc, maxr - minr,
+                                  fill=False, edgecolor='red', linewidth=2)
+        ax.add_patch(rect)
+
+#ax.set_axis_off()
+plt.tight_layout()
+plt.show()
+
+
+# In[109]:
+
+
+fig, ax = plt.subplots(figsize=(9, 9))
+ax.imshow(imgb2c[100:200,0:200][0:60,50:110], cmap='gray')
+
+
+# In[108]:
+
+
+fig, ax = plt.subplots(figsize=(9, 9))
+ax.imshow(imgb2c[200:300,200:300], cmap='gray')
+
+
+# In[112]:
+
+
+fig, ax = plt.subplots(figsize=(9, 9))
+ax.imshow(imgb2c[0:100,150:250], cmap='gray')
 
 
 # # Extra
