@@ -234,26 +234,65 @@ plt.imshow(label_image)
 print(n_objs)
 
 
-# In[35]:
+# In[74]:
+
+
+objs = regionprops(label_image)
+
+
+# In[75]:
+
+
+areas = pd.core.frame.DataFrame({
+    'area': map(lambda x: x.area, objs)
+})
+
+
+# In[76]:
+
+
+areas.describe(), sns.boxplot(areas)
+
+
+# In[77]:
+
+
+areas2 = areas[ areas.area != areas.area.max() ]
+areas2.describe(), sns.boxplot(areas2)
+
+
+# In[78]:
+
+
+sns.distplot(areas2)
+
+
+# In[83]:
 
 
 image_label_overlay = label2rgb(label_image, image=imgb2)
 
 fig, ax = plt.subplots(figsize=(10, 6))
-ax.imshow(image_label_overlay)
+ax.imshow(image_label_overlay, cmap='gray')
 
-for region in regionprops(label_image):
+for region in objs:
     # take regions with large enough areas
-    if region.area >= 10:
-        # draw rectangle around segmented coins
+    if region.area >= 0:
+        # draw rectangle around segmented cells
         minr, minc, maxr, maxc = region.bbox
         rect = mpatches.Rectangle((minc, minr), maxc - minc, maxr - minr,
                                   fill=False, edgecolor='red', linewidth=2)
         ax.add_patch(rect)
 
-ax.set_axis_off()
+#ax.set_axis_off()
 plt.tight_layout()
 plt.show()
+
+
+# In[80]:
+
+
+help(ax.imshow)
 
 
 # # Extra
