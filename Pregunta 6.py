@@ -477,13 +477,15 @@ labels  = watershed(-distance, markers, mask=image)
 
 
 image = pad(cells[2][-4])
-markers, distance, labels = ez_watershed(image)
 
 
-# In[228]:
+# In[229]:
 
 
-watershed_viz(image, distance, labels)
+for cell in cells[2]:
+    image = pad(cell)
+    markers, distance, labels = ez_watershed(image)
+    watershed_viz(image, distance, labels)
 
 
 # In[ ]:
