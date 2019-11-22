@@ -11,7 +11,7 @@
 # 
 # c. (1 punto) Continuando con la imagen anterior. Cuente y etiquete cuantos objetos de la segmentación pueden considerarse 2 células agrupadas, y cuantos y cuales más de 2 células.
 
-# In[148]:
+# In[2]:
 
 
 # Annotations
@@ -53,7 +53,7 @@ from sklearn.cluster import KMeans
 import importlib
 
 
-# In[2]:
+# In[3]:
 
 
 # Custom :
@@ -66,7 +66,7 @@ importlib.reload(utils)
 import utils
 
 
-# In[75]:
+# In[4]:
 
 
 # Being lazy :
@@ -74,7 +74,7 @@ lmap = lambda x, y: list(map(x, y))
 lfilter = lambda x, y: list(filter(x, y))
 
 
-# In[243]:
+# In[5]:
 
 
 def segplot(
@@ -158,20 +158,20 @@ def ez_watershed(image: np.ndarray, footprint: Optional[np.array] = None, **kw) 
 ##
 
 
-# In[3]:
+# In[6]:
 
 
 #plt.style.available
 
 
-# In[4]:
+# In[7]:
 
 
 plt.style.use('seaborn-deep')
 plt.rcParams['figure.figsize'] = (10, 5)
 
 
-# In[5]:
+# In[8]:
 
 
 img   = cv.imread('imagenes/Ex3Preg6(a).tif', cv.IMREAD_GRAYSCALE)
@@ -180,32 +180,32 @@ color = cv.cvtColor(img, cv.COLOR_GRAY2RGB) # Color copy, to draw colored circle
 
 # ## a. (0.5 puntos) Usando una técnica de umbralización global, segmente la imagen y muestre el resultado de la segmetnación.
 
-# In[6]:
+# In[9]:
 
 
 intensities = pd.core.frame.DataFrame(dict(intensity=img.flatten()))
 
 
-# In[7]:
+# In[10]:
 
 
 sns.distplot(intensities, kde=False, rug=True, bins=10)
 
 
-# In[69]:
+# In[11]:
 
 
 kmeans = KMeans(n_clusters=2, random_state=0, verbose=False).fit(intensities)
 K = int(kmeans.cluster_centers_.mean())
 
 
-# In[154]:
+# In[12]:
 
 
 centers1 = lmap(int, list(chain.from_iterable(kmeans.cluster_centers_)))
 
 
-# In[74]:
+# In[13]:
 
 
 sns.distplot(intensities, kde=False, rug=True, bins=10)
@@ -214,13 +214,13 @@ lmap(lambda x: plt.axvline(x, color='g'), centers1)
 _ = plt.title(f"Means = {centers1}, K = {K}", size=16)
 
 
-# In[10]:
+# In[14]:
 
 
 thresh1 = cv.threshold(img, K, 255, cv.THRESH_BINARY)[1]
 
 
-# In[11]:
+# In[15]:
 
 
 utils.side_by_side(img, thresh1)
@@ -228,13 +228,13 @@ utils.side_by_side(img, thresh1)
 
 # Como podemos ver, una técinca de umbralización estándar como k-medias móviles, con dos medias, da resultados muy pobres.
 
-# In[12]:
+# In[16]:
 
 
 otsu1 = cv.threshold(img,0,255,cv.THRESH_BINARY+cv.THRESH_OTSU)[1]
 
 
-# In[13]:
+# In[17]:
 
 
 utils.side_by_side(img, otsu1)
@@ -242,14 +242,14 @@ utils.side_by_side(img, otsu1)
 
 # El algoritmo de Otsu no logra mejorar mucho la segmentación (esto era de esperarse dado que el histograma original era claramente bimodal). 
 
-# In[14]:
+# In[18]:
 
 
 gblur = cv.GaussianBlur(img,(3,3),0)
 otsu2 = cv.threshold(gblur,0,255,cv.THRESH_BINARY+cv.THRESH_OTSU)[1]
 
 
-# In[15]:
+# In[19]:
 
 
 utils.side_by_side(img, otsu2)
@@ -257,14 +257,14 @@ utils.side_by_side(img, otsu2)
 
 # El algoritmo de Otsu no logra mejorar mucho la segmentación aún en combinación con un suavizado Gaussiano.
 
-# In[16]:
+# In[20]:
 
 
 img_blur = cv.medianBlur(img, 5)
 circles = cv.HoughCircles(img_blur, cv.HOUGH_GRADIENT, 1, img.shape[0]/64, param1=200, param2=10, minRadius=5, maxRadius=7)
 
 
-# In[17]:
+# In[21]:
 
 
 if circles is not None:
@@ -273,7 +273,7 @@ if circles is not None:
         cv.circle(img, (i[0], i[1]), i[2], (0, 0, 255), 2)
 
 
-# In[18]:
+# In[22]:
 
 
 plt.imshow(img, cmap='gray')
@@ -283,7 +283,7 @@ plt.imshow(img, cmap='gray')
 
 # ## b. (0.5 puntos) A la imagenoriginal se le aplicó una umbralización con valores locales yal resultado se le realizó una apertura morbológica obteniendo la imagen Ex3Preg6(b).tif. Usando esta imagen,cuente y etiquete cuantos objetos de la segmentación pueden considerarse células independientes. 
 
-# In[19]:
+# In[23]:
 
 
 imgb  = cv.imread('imagenes/Ex3Preg6(b).tif', cv.IMREAD_GRAYSCALE)
@@ -294,13 +294,13 @@ utils.side_by_side(imgb, imgbc)
 # ### Primera aproximación :
 # El uso de la transformada de Hough para círculos, no para líneas. Al ver la imagen, uno podría pensar que un círculo es una buena aproximación de la forma de una célula, por lo tanto los cículos encontrados por una transformada de Hough serían las células que buscamos identificar, caracterizar y contabilizar
 
-# In[20]:
+# In[26]:
 
 
 circles = cv.HoughCircles(imgb, cv.HOUGH_GRADIENT, 1, img.shape[0]/64, param1=200, param2=10, minRadius=5, maxRadius=15)
 
 
-# In[21]:
+# In[27]:
 
 
 if circles is not None:
@@ -309,7 +309,7 @@ if circles is not None:
         cv.circle(imgbc, (i[0], i[1]), i[2], (155, 0, 0), 2)
 
 
-# In[22]:
+# In[28]:
 
 
 utils.side_by_side(imgb, imgbc)
@@ -319,7 +319,7 @@ utils.side_by_side(imgb, imgbc)
 # 
 # Esto nos indica que tal vez las células no se asemejan tanto a un círculo. Por esta razón, no se explorará más a fondo esta vía de acción. Cabe mencionar que la transformada encuentra círculos en el texto de encabezado : **Imagen con apertura**. Por esta razón, en delante se trabajará con otra imagen recortada a mano para excluir este texto que podría causar problemas en la segmentación más adelante.
 
-# In[23]:
+# In[29]:
 
 
 imgb2  = cv.imread('imagenes/Ex3Preg6(b)3.tif', cv.IMREAD_GRAYSCALE)
@@ -327,7 +327,7 @@ imgb2c = clear_border(imgb2)
 utils.side_by_side(imgb2, imgb2c)
 
 
-# In[24]:
+# In[30]:
 
 
 sns.distplot(imgb2c.flatten(), kde=False, rug=True)
@@ -335,7 +335,7 @@ sns.distplot(imgb2c.flatten(), kde=False, rug=True)
 
 # Imagen claramente binaria.
 
-# In[25]:
+# In[31]:
 
 
 label_image, n_objs = label(imgb2c, return_num=True)
@@ -347,7 +347,7 @@ print(n_objs)
 
 # Aquí podemos ver cómo ```skimage.label()``` es efectivo para identificar objetos en una imagen binaria.
 
-# In[26]:
+# In[32]:
 
 
 objs = regionprops(label_image) 
@@ -362,13 +362,13 @@ areas = pd.core.frame.DataFrame({
 # 
 # La conclusión lógica sería que donde se tenían dos o más células y que la apertura unió las regiones de segmentación, el valor del área aumentará consecuentemente.
 
-# In[28]:
+# In[33]:
 
 
 areas.describe(), sns.boxplot(areas)
 
 
-# In[30]:
+# In[34]:
 
 
 sns.distplot(areas, kde=False, rug=True)
@@ -376,7 +376,7 @@ sns.distplot(areas, kde=False, rug=True)
 
 # Analizando la distribución de las áreas, se encuentran algunos puntos cercanos a cero, éstos serán inspeccionados a continuación.
 
-# In[41]:
+# In[35]:
 
 
 _ = areas.area.sort_values()
@@ -387,7 +387,7 @@ _[:10], _[-10:]
 
 # Se propone clasificar los cúmulos de 1, 2 y 3 o más bacterias en función del área. Se utilizará el algoritmo de las medias móviles con tres grupos, es decir dos umbrales.
 
-# In[44]:
+# In[36]:
 
 
 objs2  = regionprops(label_image)
@@ -397,7 +397,7 @@ areas2 = pd.core.frame.DataFrame({
 })
 
 
-# In[98]:
+# In[37]:
 
 
 kmeans2 = KMeans(n_clusters=3, random_state=0, verbose=False).fit(areas2)
@@ -410,7 +410,7 @@ centers = centers.applymap(lambda x: np.int64(x) if not np.isnan(x) else x)
 print(centers)
 
 
-# In[146]:
+# In[38]:
 
 
 sns.distplot(areas2, kde=False, rug=True)
@@ -419,7 +419,7 @@ lmap(lambda x: plt.axvline(x, color='g'), centers.means)
 _ = plt.title(f"Means = {centers.means.tolist()}, Ks = {centers.k.dropna().tolist()}", size=16)
 
 
-# In[100]:
+# In[39]:
 
 
 ks = centers.k.dropna().tolist()
@@ -433,69 +433,49 @@ cells = [
 # Creamos una lista de listas en la cual están contenidos tres grupos de bacterias (cúmulos de 1, 2 o más) identificados por ```skimage.label()```, separados en función de los umbrales encontrados promediando los promedios encontrados por ```sklean.KMeans()```.
 # 
 # A continuación se observan las máscaras identificando los grupos respectivos. Nótese que el conjunto con la mayor cantidad de errores (sobre todo falsos positivos) es el de dos células.
+# 
+# Grupos observados :
+#     1. En rojo  : una célula.
+#     2. En verde : dos células.
+#     3. En azul  : más de dos células.
 
-# In[135]:
+# In[40]:
 
 
 for cell, color in zip(cells, 'red green blue'.split(' ')):
     segplot(imgb2c, cell, color=color)
 
 
-# In[142]:
+# In[41]:
 
 
 conteo = {f"Objetos de {i} células": len(cells[i-1]) for i in range(1, 4)}
 conteo
 
 
-# In[165]:
+# Aquí está el conteo del número de bacterias por objeto en la máscara de segmentación (imagen binaria).
+# De entre todas las clases, debemos confiar menos en la segunda categoría, dado que la mera separación en función del área no basta para distinguir adecuadamente entre cúmulos de una célula grande, dos y tres de las cuales una o dos pueden ser pequeñas.
+
+# Reporte de errores observados en el conjunto de **dos células**. 
+# 
+#     1. Falsos postivos  : 10
+#     2. Falsos negativos : 1
+#     
+
+# In[42]:
 
 
 plt.close('all')
 
 
-# In[262]:
+# In[46]:
 
 
-"""
-for cell in cells[2]:
-    fig, ax = plt.subplots(figsize=(10, 10))
-    ax.imshow(cell.image, cmap='gray')
-"""
-
-
-# In[187]:
-
-
+# One-liner used to fill the borders of segmentation regions
 pad = lambda x: cv.copyMakeBorder(np.float64(x.image), 10, 10, 10, 10, cv.BORDER_CONSTANT)
 
 
-# In[ ]:
-
-
-
-
-
-# In[265]:
-
-
-# Now we want to separate the two objects in image
-# Generate the markers as local maxima of the distance to the background
-"""
-image = pad(cells[1][-3])
-distance = ndi.distance_transform_edt(image)
-local_maxi = peak_local_max(
-    distance, 
-    indices=False, 
-    footprint=np.ones((10, 10)),
-    labels=image
-)
-markers = ndi.label(local_maxi)[0]
-labels  = watershed(-distance, markers, mask=image)
-"""
-
-
-# In[274]:
+# In[47]:
 
 
 areas2 = pd.core.series.Series(lmap(lambda x: x.area, cells[1]))
@@ -505,36 +485,13 @@ plt.axvline(areas2.mean() + areas2.std() , color='r')
 plt.axvline(areas2.mean() - areas2.std() , color='r')
 
 
-# In[275]:
+# In[60]:
 
 
-grandes = [cell for cell in cells[1] if cell.area < areas2.mean() - 0.5*areas2.std()]
+grandes = [cell for cell in cells[1] if cell.area > areas2.mean() - 0.5*areas2.std()]
 
 
-# In[285]:
-
-
-cells[1][2].area
-
-
-# In[286]:
-
-
-propiedades2 = pd.core.frame.DataFrame({
-    "A * P": lmap(lambda x: x.area * x.perimeter, cells[1]),
-    "A / P": lmap(lambda x: x.area / x.perimeter, cells[1]),
-    "P / A": lmap(lambda x: x.perimeter / x.area, cells[1]),
-    "convex A": lmap(lambda x: x.convex_area, cells[1])
-})
-
-
-# In[287]:
-
-
-propiedades2.hist()
-
-
-# In[277]:
+# In[61]:
 
 
 for cell in grandes:
@@ -543,29 +500,71 @@ for cell in grandes:
     watershed_viz(image, distance, labels)
 
 
-# In[247]:
+# In[75]:
 
 
-areas3 = lmap(lambda x: x.area, cells[2])
-mean_area3 = np.mean(areas3)
-sns.distplot(areas3)
-plt.axvline(mean_area3, color='r')
+#type(cells[1][2])
 
 
-# In[229]:
+# In[76]:
+
+
+# Function used to extract properties from a list of skimage.measure._regionprops.RegionProperties
+properties_table = lambda y: pd.core.frame.DataFrame({
+    "A * P": lmap(lambda x: x.area * x.perimeter, y),
+    "A / P": lmap(lambda x: x.area / x.perimeter, y),
+    "P / A": lmap(lambda x: x.perimeter / x.area, y),
+    "convex A": lmap(lambda x: x.convex_area, y),
+    "equivalent_diameter": lmap(lambda x: x.equivalent_diameter, y),
+    "eccentricity": lmap(lambda x: x.eccentricity, y),
+    "minor_axis_length": lmap(lambda x: x.minor_axis_length, y),
+    "major_axis_length": lmap(lambda x: x.major_axis_length, y)
+})
+
+
+# In[77]:
+
+
+propiedades2 = properties_table(cells[1])
+
+
+# In[78]:
+
+
+sns.pairplot(propiedades2)
+
+
+# ### Perspectivas de mejora del conteo celular :
+# 
+# Aquí podemos observar que las propiedades que probablemente sean más útiles para mejorar la clasificación se encuentran en las primeras cuatro filas y en las últimas tres columnas. Ya que en los _scatterplots_ generados hay una separación considerable a lo largo de los ejes horizontales entre los que creeríamos son **verdaderos positivos** (cúmulo de puntos mayor) y los que son **falsos positivos** (puntos dispersos entre sí y alejados del cúmulo principal).
+# 
+# Observando a qué regiones pertenecen y etiquetándolos, se podría entrenar un modelo de inteligencia artificial sea una red neuronal o una máquina de soporte vectorial para poder clasificarlos eficientemente.
+# 
+# La máquina de soporte vectorial encontraría (idealmente) el hiperplano que mejor separase los cúmulos.
+# Un ejemplo artificial (construido a mano) se muestra a continuación.
+
+# In[84]:
+
+
+sns.scatterplot('minor_axis_length', 'convex A', data=propiedades2)
+plt.axvline(13, color='red')
+
+
+# ### Extra : Visualización de subsegmentaciones gracias al algoritmo Watershed.
+
+# In[87]:
 
 
 for cell in cells[2]:
     image = pad(cell)
-    markers, distance, labels = ez_watershed(image)
+    markers, distance, labels = ez_watershed(image, footprint=np.ones((10,10)))
     watershed_viz(image, distance, labels)
 
 
-# In[261]:
+# In[ ]:
 
 
-markers, distance, labels = ez_watershed(cells[1][-6].image, footprint=np.ones((5, 5)))
-markers
+
 
 
 # In[ ]:
