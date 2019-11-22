@@ -345,6 +345,8 @@ ax.imshow(label_image)
 print(n_objs)
 
 
+# Aquí podemos ver cómo ```skimage.label()``` es efectivo para identificar objetos en una imagen binaria.
+
 # In[26]:
 
 
@@ -353,6 +355,12 @@ areas = pd.core.frame.DataFrame({
     'area': map(lambda x: x.area, objs)
 })
 
+
+# Bajo las hipótesis :
+#     1. El área observable de las bacterias sigue una distribución normal razonablemnte estrecha.
+#     2. El área de la máscara de segmentación generada a través de una umbralización con valores locales y una apertura morfológica es una buena aproximación del área de una célula.
+# 
+# La conclusión lógica sería que donde se tenían dos o más células y que la apertura unió las regiones de segmentación, el valor del área aumentará consecuentemente.
 
 # In[28]:
 
@@ -366,6 +374,8 @@ areas.describe(), sns.boxplot(areas)
 sns.distplot(areas, kde=False, rug=True)
 
 
+# Analizando la distribución de las áreas, se encuentran algunos puntos cercanos a cero, éstos serán inspeccionados a continuación.
+
 # In[41]:
 
 
@@ -374,6 +384,8 @@ _[:10], _[-10:]
 
 
 # Algunos de los primeros valores de las áreas corresponden claramente a falsos positivos, porque no tenemos células de uno o dos pixeles. Estos pixeles blancos no se observaban en la imagen original, de cualquier manera se retirarán manualmente para no sesgar el análisis posterior.
+
+# Se propone clasificar los cúmulos de 1, 2 y 3 o más bacterias en función del área. Se utilizará el algoritmo de las medias móviles con tres grupos, es decir dos umbrales.
 
 # In[44]:
 
@@ -417,6 +429,10 @@ cells = [
     lfilter(lambda x: x if x.area >= ks[1] else False, objs2)
 ]
 
+
+# Creamos una lista de listas en la cual están contenidos tres grupos de bacterias (cúmulos de 1, 2 o más) identificados por ```skimage.label()```, separados en función de los umbrales encontrados promediando los promedios encontrados por ```sklean.KMeans()```.
+# 
+# A continuación se observan las máscaras identificando los grupos respectivos. Nótese que el conjunto con la mayor cantidad de errores (sobre todo falsos positivos) es el de dos células.
 
 # In[135]:
 
